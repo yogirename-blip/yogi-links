@@ -12,14 +12,16 @@ router.post("/", createLimit, requireUser, async (req, res) => {
   if (!validPublicUrl(original_url, req)) {
     return res.status(400).json({ error: "Enter a valid public http:// or https:// URL (not this site)." });
   }
+  const n = parseInt(req.body?.ad_pages, 10);
+  const ad_pages = n >= 1 && n <= 3 ? n : 1;
   try {
     let inserted = null, lastError = null;
     for (let i = 0; i < 4; i++) {
       const short_code = makeCode();
       const { data, error } = await req.authClient
         .from("short_links")
-        .insert({ user_id: req.user.id, original_url, short_code })
-        .select("id, original_url, short_code, total_clicks, created_at, is_active")
+        .insert({ user_id: req.user.id, original_url, short_code, ad_pages })
+        .select("id, original_url, short_code, total_clicks, created_at, is_active, ad_pages")
         .single();
       if (!error) { inserted = data; break; }
       lastError = error;
@@ -39,7 +41,7 @@ router.post("/", createLimit, requireUser, async (req, res) => {
 router.get("/", requireUser, async (req, res) => {
   const { data, error } = await req.authClient
     .from("short_links")
-    .select("id, original_url, short_code, total_clicks, created_at, is_active")
+    .select("id, original_url, short_code, total_clicks, created_at, is_active, ad_pages")
     .eq("user_id", req.user.id)
     .order("created_at", { ascending: false })
     .limit(100);
