@@ -1,1 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YoGi Links — Link Shortener</title>
+<meta name="description" content="Create and manage short links from your dashboard.">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div><div class="brand">YoGi <span>Links</span></div><div class="tag">Simple link management dashboard</div></div><span class="pill">BETA</span></header>
+<section class="card">
+  <h1>Short links, <span style="color:var(--accent)">one dashboard.</span></h1>
+  <p class="muted">Create short links and track redirect counts. Advertising earnings are not enabled until an approved ad partner is connected.</p>
+</section>
+
+<section id="authCard" class="card">
+  <h2 id="authTitle">Create your account</h2>
+  <div id="message" class="notice hidden"></div>
+  <form id="authForm">
+    <label for="email">Email</label><input id="email" type="email" autocomplete="email" required maxlength="254">
+    <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="8" required>
+    <div class="row" style="margin-top:15px"><button id="authSubmit" type="submit">Sign up</button><button class="secondary" id="toggleAuth" type="button">I already have an account</button></div>
+  </form>
+</section>
+
+<section id="dashboard" class="hidden">
+  <section class="card">
+    <div class="row" style="align-items:center"><div><h2 style="margin-bottom:4px">Your dashboard</h2><div id="signedInAs" class="muted small"></div></div><button class="secondary" id="signOut" style="flex:0 0 auto">Sign out</button></div>
+    <div class="stats" style="margin-top:18px">
+      <div class="stat"><span class="muted">Links created</span><strong id="linkCount">0</strong></div>
+      <div class="stat"><span class="muted">Recorded redirects</span><strong id="clickCount">0</strong></div>
+      <div class="stat"><span class="muted">Earnings</span><strong>Not active</strong><span class="small">Requires approved ad partner</span></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Create a short link</h2>
+    <div id="linkMessage" class="notice hidden"></div>
+    <form id="linkForm"><label for="url">Original URL</label><input id="url" type="url" placeholder="https://example.com/page" required>
+    <button type="submit" style="margin-top:14px">Create short link</button></form>
+  </section>
+  <section class="card">
+    <div class="row" style="align-items:center"><h2 style="margin:0">Your links</h2><button class="secondary" id="refresh" style="flex:0 0 auto">Refresh</button></div>
+    <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Short link</th><th>Destination</th><th>Clicks</th><th>Created</th></tr></thead><tbody id="linksBody"><tr><td colspan="4" class="muted">Sign in to load links.</td></tr></tbody></table></div>
+  </section>
+</section>
+<footer>Use this service lawfully. Do not shorten malicious, deceptive, or unauthorized links.</footer>
+</div>
+<script src="/config.js"></script>
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
+
 
