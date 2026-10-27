@@ -18,9 +18,10 @@ router.get("/shorten", limit, async (req, res) => {
     const key = String(req.query.api || "");
     if (!/^[a-f0-9]{32,64}$/.test(key)) return send(401, { status: "error", message: "Invalid API key." });
 
-    const { data: p } = await admin.from("profiles").select("id, is_banned").eq("api_key", key).maybeSingle();
+    const { data: p } = await admin.from("profiles").select("id, is_banned, is_approved").eq("api_key", key).maybeSingle();
     if (!p) return send(401, { status: "error", message: "Invalid API key." });
     if (p.is_banned) return send(403, { status: "error", message: "Account suspended." });
+    if (!p.is_approved) return send(403, { status: "error", message: "Account is waiting for admin approval." });
 
     const url = String(req.query.url || "").trim();
     if (!validPublicUrl(url, req)) return send(400, { status: "error", message: "Invalid URL." });
