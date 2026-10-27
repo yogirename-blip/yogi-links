@@ -130,7 +130,7 @@ app.get("/:code", async (req, res, next) => {
   }
 });
 
-app.get("*", (_req, res) => res.sendFile(require("path").join(__dirname, "public", "index.html")));
+app.get("/{*splat}", (_req, res) => res.sendFile(require("path").join(__dirname, "public", "index.html")));
 
 app.listen(PORT, () => console.log(`YoGi Links server listening on ${PORT}`));
 
