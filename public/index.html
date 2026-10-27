@@ -137,6 +137,15 @@
         </div>
         <button id="saveSettings" class="btn block">Save settings</button>
       </div>
+      <div class="card">
+        <h3>📢 Ad settings</h3>
+        <p class="muted tiny">Paste your ad network code (Adsterra / Monetag etc). Leave a box empty to show a grey "Ad space" box.</p>
+        <label for="adWait">Wait seconds on each page (3 - 60)</label><input id="adWait" type="number" step="1" min="3" max="60">
+        <label for="adTop">Top ad code</label><textarea id="adTop" rows="4" spellcheck="false"></textarea>
+        <label for="adMid">Middle ad code</label><textarea id="adMid" rows="4" spellcheck="false"></textarea>
+        <label for="adBot">Bottom ad code</label><textarea id="adBot" rows="4" spellcheck="false"></textarea>
+        <button id="saveAds" class="btn block">Save ads</button>
+      </div>
       <div class="card"><h3>💸 Withdrawal requests</h3><div id="adWd" class="list"></div></div>
       <div class="card"><h3>👥 Users</h3><div id="adUsers" class="list"></div></div>
       <div class="card"><h3>🔗 Latest links (all users)</h3><div id="adLinks" class="list"></div></div>
