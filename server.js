@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(express.json({ limit: "20kb" }));
+app.use(express.json({ limit: "100kb" }));
 
 // Public browser config (anon key is public by design) comes from Render env vars,
 // so you never have to edit index.html.
