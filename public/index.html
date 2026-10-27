@@ -31,6 +31,13 @@
     <button id="toggleAuth" class="btn ghost block" type="button">I already have an account</button>
   </section>
 
+  <!-- WAITING FOR APPROVAL -->
+  <section id="pendingCard" class="card auth hidden">
+    <h2>⏳ Waiting for approval</h2>
+    <p class="muted">Your account is created. The admin will check your email and approve you soon. Come back later and press the button below.</p>
+    <button id="checkApproval" class="btn block" type="button">Check again</button>
+  </section>
+
   <!-- APP -->
   <main id="dashboard" class="hidden">
     <nav class="tabs" id="tabs">
@@ -124,6 +131,7 @@
     <!-- ADMIN -->
     <section id="tab-admin" class="tab hidden">
       <div id="adStats" class="grid"></div>
+      <div class="card"><h3>🆕 New signups (waiting for your approval)</h3><div id="adPending" class="list"></div></div>
       <div class="card"><h3>Last 14 days <span class="muted tiny">(all users)</span></h3><div id="chart14" class="chart small"></div></div>
       <div class="card">
         <h3>⚙️ Earning settings</h3>
