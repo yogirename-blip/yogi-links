@@ -100,7 +100,8 @@ $("signOut").addEventListener("click", async () => { await supabase.auth.signOut
 
 function renderAuth() {
   $("authCard").classList.toggle("hidden", !!session);
-  $("dashboard").classList.toggle("hidden", !session);
+  $("dashboard").classList.toggle("hidden", !session || (!!me && me.is_approved === false));
+  $("pendingCard").classList.toggle("hidden", !session || !me || me.is_approved !== false);
   $("userBar").classList.toggle("hidden", !session);
   if (session) { $("signedInAs").textContent = session.user.email || ""; if (!entered) enterApp(); }
   else { entered = false; me = null; }
@@ -118,16 +119,22 @@ document.addEventListener("click", e => { const b = e.target.closest("[data-go]"
 
 async function loadMe() {
   me = await api("/api/me");
+  const ok = me.is_approved !== false;
+  $("pendingCard").classList.toggle("hidden", ok);
+  $("dashboard").classList.toggle("hidden", !ok);
+  if (!ok) return false;
   $("adminTabBtn").classList.toggle("hidden", !me.is_admin);
   $("heroBalance").textContent = money(me.balance);
   $("heroSub").textContent = `Total earned ${money(me.total_earned)} · Withdrawn ${money(me.total_withdrawn)}`;
   const s = me.settings;
   $("adPages").replaceChildren(...[1, 2, 3].map(n =>
     h("option", { value: n }, `${n} page${n > 1 ? "s" : ""} — ${cur()}${Number(s["rate_p" + n]).toFixed(2)} per 1000 views`)));
+  return true;
 }
+$("checkApproval").addEventListener("click", () => { entered = false; renderAuth(); });
 async function enterApp() {
   entered = true;
-  try { await loadMe(); showTab("home"); } catch (e) { toast(e.message, true); }
+  try { if (await loadMe()) showTab("home"); } catch (e) { toast(e.message, true); }
 }
 
 /* ---------- dashboard ---------- */
@@ -272,11 +279,30 @@ async function loadAdmin() {
         h("button", { class: "btn danger sm", onclick: () => act("rejected") }, "Reject & refund")) : null));
   }
 
+  const pending = users.filter(u => !u.is_approved && !u.is_banned);
+  const members = users.filter(u => u.is_approved || u.is_banned);
+  $("adStats").append(stat("🆕", "Waiting approval", num(pending.length), null, "g4"));
+  const pbox = $("adPending"); pbox.replaceChildren();
+  if (!pending.length) pbox.append(empty("No new signups waiting."));
+  for (const u of pending) {
+    const decide = ok => safe(async () => {
+      if (!ok && !confirm("Reject this user?")) return;
+      await send("PATCH", `/api/admin/users/${u.id}`, ok ? { is_approved: true } : { is_banned: true });
+      toast(ok ? "Approved ✓" : "Rejected"); loadAdmin();
+    });
+    pbox.append(h("div", { class: "row" },
+      h("div", { class: "t" }, u.email || u.id),
+      h("div", { class: "d" }, `Joined ${dateLabel(u.created_at)}`),
+      h("div", { class: "actions" },
+        h("button", { class: "btn ok sm", onclick: decide(true) }, "✅ Approve"),
+        h("button", { class: "btn danger sm", onclick: decide(false) }, "🚫 Reject"))));
+  }
   const ubox = $("adUsers"); ubox.replaceChildren();
-  for (const u of users) {
+  for (const u of members) {
     const ban = safe(async () => { await send("PATCH", `/api/admin/users/${u.id}`, { is_banned: !u.is_banned }); toast(u.is_banned ? "Unbanned" : "Banned"); loadAdmin(); });
     ubox.append(h("div", { class: "row" },
       h("div", { class: "t" }, u.email || u.id),
+      h("div", { class: "d" }, u.payment_method ? `Pay to: ${u.payment_method} — ${u.payment_details}` : "No payment details yet"),
       h("div", { class: "badges" },
         h("span", { class: "badge" }, `${u.links} links`), h("span", { class: "badge" }, `${num(u.views)} views`),
         h("span", { class: "badge on" }, `Balance ${money(u.balance)}`), h("span", { class: "badge" }, `Earned ${money(u.total_earned)}`),
