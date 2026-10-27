@@ -30,4 +30,13 @@ function validPublicUrl(value, req) {
   return !own.has(h);
 }
 
-module.exports = { makeCode, baseUrl, validPublicUrl };
+const BOT_RE = /bot|crawl|spider|slurp|facebookexternalhit|whatsapp|telegram|preview|curl|wget|python|httpclient|headless|lighthouse|monitor|uptime/i;
+const isBot = ua => !ua || BOT_RE.test(ua);
+
+// Visitors are stored only as a salted hash (no raw IPs in the database).
+function hashIp(ip) {
+  const salt = process.env.AD_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "dev";
+  return crypto.createHash("sha256").update(`${ip}|${salt}`).digest("hex").slice(0, 32);
+}
+
+module.exports = { makeCode, baseUrl, validPublicUrl, isBot, hashIp };
