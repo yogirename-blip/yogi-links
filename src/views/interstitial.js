@@ -1,10 +1,9 @@
-const { AD_TOP, AD_MIDDLE, AD_BOTTOM } = require("../ads");
-
 const slot = (code, label) =>
   code && code.trim() ? `<div class="ad">${code}</div>` : `<div class="ad ph">${label}</div>`;
 
 // Renders one "wait + ads" page (step X of N).
-function renderStep({ code, step, total, token, wait }) {
+function renderStep({ code, step, total, token, wait, ads }) {
+  const AD_TOP = ads.top, AD_MIDDLE = ads.middle, AD_BOTTOM = ads.bottom;
   const last = step >= total;
   const href = `/${encodeURIComponent(code)}/continue?t=${encodeURIComponent(token)}`;
   return `<!doctype html>
