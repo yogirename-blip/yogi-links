@@ -1,7 +1,7 @@
 const express = require("express");
 const { admin } = require("../supabase");
 const rateLimit = require("../middleware/rateLimit");
-const { WAIT_SECONDS } = require("../ads");
+const { getSettings } = require("../services/settings");
 const { sign, verify, consume } = require("../token");
 const { renderStep } = require("../views/interstitial");
 const { isBot, hashIp } = require("../utils");
@@ -17,10 +17,17 @@ async function findLink(code) {
     .eq("short_code", code).eq("is_active", true).maybeSingle();
 }
 
-function sendStep(res, code, step, total) {
+async function getWait() {
+  const s = await getSettings();
+  const w = Math.round(Number(s.wait_seconds));
+  return { s, wait: Number.isFinite(w) && w >= 3 && w <= 60 ? w : 8 };
+}
+
+async function sendStep(res, code, step, total) {
+  const { s, wait } = await getWait();
   const token = sign({ c: code, s: step, iat: Date.now() });
   res.set("Cache-Control", "no-store").type("html")
-    .send(renderStep({ code, step, total, token, wait: WAIT_SECONDS }));
+    .send(renderStep({ code, step, total, token, wait, ads: { top: s.ad_top, middle: s.ad_middle, bottom: s.ad_bottom } }));
 }
 
 // Count one finished visit (and pay the owner), then send the visitor to the real URL.
@@ -53,13 +60,14 @@ router.get("/:code/continue", limit, async (req, res, next) => {
     const total = Math.min(3, Math.max(1, Number(link.ad_pages) || 1));
 
     // Clicked before the timer ended -> show the same step again.
-    if (age < (WAIT_SECONDS - 1) * 1000) return sendStep(res, code, Math.min(t.s, total), total);
+    const { wait } = await getWait();
+    if (age < (wait - 1) * 1000) return await sendStep(res, code, Math.min(t.s, total), total);
 
     if (t.s >= total) {
       if (!consume(String(req.query.t))) return res.redirect(302, `/${code}`);
       return finish(req, res, link);
     }
-    sendStep(res, code, t.s + 1, total);
+    await sendStep(res, code, t.s + 1, total);
   } catch (e) {
     console.error("Continue failed:", e.message);
     res.status(500).send("Could not open this short link.");
@@ -84,7 +92,7 @@ router.get("/:code", limit, async (req, res, next) => {
     if (!isBot(req.get("user-agent"))) {
       admin.from("link_starts").insert({ short_link_id: link.id, user_id: link.user_id }).then(null, () => {});
     }
-    sendStep(res, code, 1, total);
+    await sendStep(res, code, 1, total);
   } catch (e) {
     console.error("Redirect failed:", e.message);
     res.status(500).send("Could not open this short link.");
