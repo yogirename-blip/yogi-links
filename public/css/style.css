@@ -10,3 +10,5 @@ button.secondary{background:#202d40;color:var(--text);border:1px solid #344256}.
 .tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:580px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);font-size:13px}th{color:var(--muted)}td a{color:#70d9ff;word-break:break-all}.small{font-size:12px;color:var(--muted)}.pill{display:inline-block;border:1px solid #285647;color:#89f6d4;border-radius:99px;padding:4px 9px;font-size:12px}
 footer{text-align:center;color:var(--muted);font-size:12px;margin-top:28px}
 @media(max-width:600px){.card{padding:17px}.stats{grid-template-columns:1fr}.top{align-items:flex-start}.brand{font-size:22px}}
+
+select{width:100%;padding:13px 14px;border-radius:10px;border:1px solid #344256;background:#0a1220;color:var(--text);font-size:15px;outline:none}
