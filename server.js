@@ -3,6 +3,9 @@ const express = require("express");
 const helmet = require("helmet");
 const { SUPABASE_URL, SUPABASE_ANON_KEY } = require("./src/supabase");
 const linksRouter = require("./src/routes/links");
+const meRouter = require("./src/routes/me");
+const adminRouter = require("./src/routes/admin");
+const v1Router = require("./src/routes/v1");
 const redirectRouter = require("./src/routes/redirect");
 
 const app = express();
@@ -27,6 +30,10 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/links", linksRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/v1", v1Router);
+app.use("/api", meRouter);
+app.use("/api", (_req, res) => res.status(404).json({ error: "Not found." }));
 app.use(redirectRouter);
 
 app.get("/{*splat}", (_req, res) => res.sendFile(path.join(__dirname, "public", "index.html")));
