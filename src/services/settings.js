@@ -1,6 +1,7 @@
 const { admin } = require("../supabase");
 
-const DEFAULTS = { rate_p1: "0.50", rate_p2: "1.00", rate_p3: "1.50", min_withdraw: "5.00", currency: "$" };
+const DEFAULTS = { rate_p1: "0.50", rate_p2: "1.00", rate_p3: "1.50", min_withdraw: "5.00", currency: "$",
+  wait_seconds: "8", ad_top: "", ad_middle: "", ad_bottom: "" };
 let cache = null, at = 0;
 
 async function getSettings() {
