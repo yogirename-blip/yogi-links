@@ -1,56 +1,54 @@
 const express = require("express");
 const requireUser = require("../middleware/auth");
 const rateLimit = require("../middleware/rateLimit");
-const { makeCode, baseUrl, validPublicUrl } = require("../utils");
+const { baseUrl, validPublicUrl } = require("../utils");
+const { createLink, parsePages, COLS } = require("../services/links");
 
 const router = express.Router();
 const createLimit = rateLimit({ windowMs: 60_000, max: 20, message: "Too many links created. Try again in a minute." });
+const withUrl = (req, r) => ({ ...r, short_url: `${baseUrl(req)}/${r.short_code}` });
 
-// POST /api/links  -> create
+// POST /api/links
 router.post("/", createLimit, requireUser, async (req, res) => {
-  const original_url = String(req.body?.url || "").trim();
-  if (!validPublicUrl(original_url, req)) {
+  const url = String(req.body?.url || "").trim();
+  if (!validPublicUrl(url, req)) {
     return res.status(400).json({ error: "Enter a valid public http:// or https:// URL (not this site)." });
   }
-  const n = parseInt(req.body?.ad_pages, 10);
-  const ad_pages = n >= 1 && n <= 3 ? n : 1;
-  try {
-    let inserted = null, lastError = null;
-    for (let i = 0; i < 4; i++) {
-      const short_code = makeCode();
-      const { data, error } = await req.authClient
-        .from("short_links")
-        .insert({ user_id: req.user.id, original_url, short_code, ad_pages })
-        .select("id, original_url, short_code, total_clicks, created_at, is_active, ad_pages")
-        .single();
-      if (!error) { inserted = data; break; }
-      lastError = error;
-      if (error.code !== "23505") break; // only retry on duplicate code
-    }
-    if (!inserted) {
-      console.error("Link insert failed:", lastError?.code, lastError?.message);
-      return res.status(400).json({ error: "Could not create link. Check database setup (run supabase/schema.sql)." });
-    }
-    res.json({ ...inserted, short_url: `${baseUrl(req)}/${inserted.short_code}` });
-  } catch {
-    res.status(500).json({ error: "Unexpected error while creating link." });
-  }
+  const out = await createLink(req.authClient, req.user.id, url, parsePages(req.body?.ad_pages));
+  if (out.error) return res.status(out.status).json({ error: out.error });
+  res.json(withUrl(req, out.link));
 });
 
-// GET /api/links -> list own links
+// GET /api/links
 router.get("/", requireUser, async (req, res) => {
   const { data, error } = await req.authClient
-    .from("short_links")
-    .select("id, original_url, short_code, total_clicks, created_at, is_active, ad_pages")
-    .eq("user_id", req.user.id)
-    .order("created_at", { ascending: false })
-    .limit(100);
+    .from("short_links").select(COLS)
+    .eq("user_id", req.user.id).order("created_at", { ascending: false }).limit(200);
   if (error) {
     console.error("Link list failed:", error.code, error.message);
-    return res.status(400).json({ error: "Could not load links. Check database setup." });
+    return res.status(400).json({ error: "Could not load links. Run the latest supabase/schema.sql." });
   }
-  const base = baseUrl(req);
-  res.json((data || []).map(r => ({ ...r, short_url: `${base}/${r.short_code}` })));
+  res.json((data || []).map(r => withUrl(req, r)));
+});
+
+// PATCH /api/links/:id  { is_active }
+router.patch("/:id", requireUser, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id || typeof req.body?.is_active !== "boolean") return res.status(400).json({ error: "Bad request." });
+  const { data, error } = await req.authClient.from("short_links")
+    .update({ is_active: req.body.is_active }).eq("id", id).eq("user_id", req.user.id)
+    .select("id, is_active").maybeSingle();
+  if (error || !data) return res.status(400).json({ error: "Could not update link." });
+  res.json(data);
+});
+
+// DELETE /api/links/:id
+router.delete("/:id", requireUser, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: "Bad request." });
+  const { error } = await req.authClient.from("short_links").delete().eq("id", id).eq("user_id", req.user.id);
+  if (error) return res.status(400).json({ error: "Could not delete link." });
+  res.json({ ok: true });
 });
 
 module.exports = router;
