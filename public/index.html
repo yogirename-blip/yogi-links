@@ -2,54 +2,150 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>YoGi Links — Link Shortener</title>
-<meta name="description" content="Create and manage short links from your dashboard.">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#070d1a">
+<title>YoGi Links - Shorten, share, earn</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔗%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<div class="wrap">
-<header class="top"><div><div class="brand">YoGi <span>Links</span></div><div class="tag">Simple link management dashboard</div></div><span class="pill">BETA</span></header>
-<section class="card">
-  <h1>Short links, <span style="color:var(--accent)">one dashboard.</span></h1>
-  <p class="muted">Create short links and track redirect counts. Advertising earnings are not enabled until an approved ad partner is connected.</p>
-</section>
+<div id="toast" class="toast hidden"></div>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><span class="logo">🔗</span><span><b>YoGi</b> Links</span></div>
+    <div id="userBar" class="userbar hidden"><span id="signedInAs" class="muted"></span><button id="signOut" class="btn ghost sm">Sign out</button></div>
+  </header>
 
-<section id="authCard" class="card">
-  <h2 id="authTitle">Create your account</h2>
-  <div id="message" class="notice hidden"></div>
-  <form id="authForm">
-    <label for="email">Email</label><input id="email" type="email" autocomplete="email" required maxlength="254">
-    <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="8" required>
-    <div class="row" style="margin-top:15px"><button id="authSubmit" type="submit">Sign up</button><button class="secondary" id="toggleAuth" type="button">I already have an account</button></div>
-  </form>
-</section>
+  <!-- LOGIN / SIGNUP -->
+  <section id="authCard" class="card auth">
+    <h2 id="authTitle">Create your account</h2>
+    <p class="muted">Shorten links, share them, and earn from every visit.</p>
+    <div id="message" class="notice hidden"></div>
+    <form id="authForm">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+      <label for="password">Password</label>
+      <input id="password" type="password" minlength="6" autocomplete="new-password" placeholder="At least 6 characters" required>
+      <button id="authSubmit" class="btn block" type="submit">Sign up</button>
+    </form>
+    <button id="toggleAuth" class="btn ghost block" type="button">I already have an account</button>
+  </section>
 
-<section id="dashboard" class="hidden">
-  <section class="card">
-    <div class="row" style="align-items:center"><div><h2 style="margin-bottom:4px">Your dashboard</h2><div id="signedInAs" class="muted small"></div></div><button class="secondary" id="signOut" style="flex:0 0 auto">Sign out</button></div>
-    <div class="stats" style="margin-top:18px">
-      <div class="stat"><span class="muted">Links created</span><strong id="linkCount">0</strong></div>
-      <div class="stat"><span class="muted">Recorded redirects</span><strong id="clickCount">0</strong></div>
-      <div class="stat"><span class="muted">Earnings</span><strong>Not active</strong><span class="small">Requires approved ad partner</span></div>
-    </div>
-  </section>
-  <section class="card">
-    <h2>Create a short link</h2>
-    <div id="linkMessage" class="notice hidden"></div>
-    <form id="linkForm"><label for="url">Original URL</label><input id="url" type="url" placeholder="https://example.com/page" required>
-    <label for="adPages" style="margin-top:12px;display:block">Ad pages before the link</label><select id="adPages"><option value="1">1 page</option><option value="2">2 pages</option><option value="3">3 pages</option></select>
-    <button type="submit" style="margin-top:14px">Create short link</button></form>
-  </section>
-  <section class="card">
-    <div class="row" style="align-items:center"><h2 style="margin:0">Your links</h2><button class="secondary" id="refresh" style="flex:0 0 auto">Refresh</button></div>
-    <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Short link</th><th>Destination</th><th>Ads</th><th>Clicks</th><th>Created</th></tr></thead><tbody id="linksBody"><tr><td colspan="5" class="muted">Sign in to load links.</td></tr></tbody></table></div>
-  </section>
-</section>
-<footer>Use this service lawfully. Do not shorten malicious, deceptive, or unauthorized links.</footer>
+  <!-- APP -->
+  <main id="dashboard" class="hidden">
+    <nav class="tabs" id="tabs">
+      <button data-tab="home" class="on">📊 Dashboard</button>
+      <button data-tab="links">🔗 Links</button>
+      <button data-tab="earn">💰 Earnings</button>
+      <button data-tab="api">⚙️ API</button>
+      <button data-tab="admin" id="adminTabBtn" class="hidden">🛡️ Admin</button>
+    </nav>
+
+    <!-- DASHBOARD -->
+    <section id="tab-home" class="tab">
+      <div class="hero card">
+        <div>
+          <p class="muted tiny">Available balance</p>
+          <h1 id="heroBalance">0.0000</h1>
+          <p id="heroSub" class="muted tiny"></p>
+        </div>
+        <button class="btn" data-go="earn">Withdraw</button>
+      </div>
+      <div id="statGrid" class="grid"></div>
+      <div class="card"><h3>Last 7 days <span class="muted tiny">(finished views)</span></h3><div id="chart7" class="chart"></div></div>
+      <div class="card"><h3>💵 Earning rates</h3><div id="ratesBox" class="rates"></div></div>
+      <div class="card"><h3>🔥 Top links today</h3><div id="topLinks" class="list"></div></div>
+    </section>
+
+    <!-- LINKS -->
+    <section id="tab-links" class="tab hidden">
+      <div class="card">
+        <h3>Create a short link</h3>
+        <div id="linkMessage" class="notice hidden"></div>
+        <form id="linkForm">
+          <label for="url">Original URL</label>
+          <input id="url" type="url" placeholder="https://example.com/page" required>
+          <label for="adPages">Ad pages before the link</label>
+          <select id="adPages"></select>
+          <button class="btn block" type="submit">Create short link</button>
+        </form>
+        <div id="created" class="copybox hidden">
+          <p class="muted tiny">Your short link is ready 🎉</p>
+          <div class="copyrow"><input id="createdUrl" readonly><button id="copyCreated" class="btn sm" type="button">Copy link</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="between"><h3>Your links</h3><button id="refresh" class="btn ghost sm">Refresh</button></div>
+        <div id="linkList" class="list"></div>
+      </div>
+    </section>
+
+    <!-- EARNINGS -->
+    <section id="tab-earn" class="tab hidden">
+      <div class="grid" id="walletGrid"></div>
+      <div class="card">
+        <h3>Payment method</h3>
+        <label for="payMethod">Method</label>
+        <select id="payMethod">
+          <option value="">Choose…</option><option>UPI</option><option>PayPal</option><option>Paytm</option><option>Bank transfer</option><option>Other</option>
+        </select>
+        <label for="payDetails">Details (UPI ID / email / account info)</label>
+        <input id="payDetails" maxlength="200" placeholder="name@upi">
+        <button id="savePay" class="btn block">Save payment details</button>
+      </div>
+      <div class="card">
+        <h3>Withdraw</h3>
+        <p id="minNote" class="muted tiny"></p>
+        <label for="wdAmount">Amount</label>
+        <input id="wdAmount" type="number" step="0.01" min="0" placeholder="0.00">
+        <button id="wdBtn" class="btn block">Request withdrawal</button>
+      </div>
+      <div class="card"><h3>Withdrawal history</h3><div id="wdList" class="list"></div></div>
+    </section>
+
+    <!-- API -->
+    <section id="tab-api" class="tab hidden">
+      <div class="card">
+        <h3>Your API key</h3>
+        <p class="muted tiny">Use it to create short links from your own website, bot or app. Keep it secret.</p>
+        <div class="copyrow"><input id="apiKey" readonly><button id="showKey" class="btn ghost sm" type="button">Show</button><button id="copyKey" class="btn sm" type="button">Copy</button></div>
+        <button id="regenKey" class="btn danger block" type="button">Generate new key</button>
+      </div>
+      <div class="card">
+        <h3>How to use</h3>
+        <p class="muted tiny">Open this URL (GET) and you get the short link back:</p>
+        <div class="copyrow"><input id="apiExample" readonly><button id="copyExample" class="btn sm" type="button">Copy</button></div>
+        <div class="kv"><b>api</b><span>your API key</span><b>url</b><span>the long link (URL-encoded)</span><b>pages</b><span>1, 2 or 3 ad pages (default 1)</span><b>format</b><span><code>json</code> (default) or <code>text</code> (returns only the short link)</span></div>
+        <p class="muted tiny">JSON reply:</p>
+        <pre id="apiReply">{"status":"success","shortenedUrl":"…","pages":2}</pre>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="tab-admin" class="tab hidden">
+      <div id="adStats" class="grid"></div>
+      <div class="card"><h3>Last 14 days <span class="muted tiny">(all users)</span></h3><div id="chart14" class="chart small"></div></div>
+      <div class="card">
+        <h3>⚙️ Earning settings</h3>
+        <p class="muted tiny">Rates are paid to the link owner <b>per 1000 finished, unique views</b>. Keep them lower than what your ad network pays you.</p>
+        <div class="two">
+          <div><label for="s1">1 page rate</label><input id="s1" type="number" step="0.01" min="0"></div>
+          <div><label for="s2">2 pages rate</label><input id="s2" type="number" step="0.01" min="0"></div>
+          <div><label for="s3">3 pages rate</label><input id="s3" type="number" step="0.01" min="0"></div>
+          <div><label for="sMin">Minimum withdrawal</label><input id="sMin" type="number" step="0.01" min="0"></div>
+          <div><label for="sCur">Currency symbol</label><input id="sCur" maxlength="4"></div>
+        </div>
+        <button id="saveSettings" class="btn block">Save settings</button>
+      </div>
+      <div class="card"><h3>💸 Withdrawal requests</h3><div id="adWd" class="list"></div></div>
+      <div class="card"><h3>👥 Users</h3><div id="adUsers" class="list"></div></div>
+      <div class="card"><h3>🔗 Latest links (all users)</h3><div id="adLinks" class="list"></div></div>
+    </section>
+  </main>
+
+  <footer>Use this service lawfully. Do not shorten malicious, deceptive, or unauthorized links.</footer>
 </div>
 <script src="/config.js"></script>
 <script type="module" src="/js/app.js"></script>
 </body>
 </html>
-
