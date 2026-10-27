@@ -18,6 +18,14 @@ CREATE TABLE IF NOT EXISTS public.link_clicks (
     referrer TEXT
 );
 
+-- Ad pages shown before the real link (1, 2 or 3). Existing links get 1.
+ALTER TABLE public.short_links ADD COLUMN IF NOT EXISTS ad_pages SMALLINT NOT NULL DEFAULT 1;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'short_links_ad_pages_check') THEN
+    ALTER TABLE public.short_links ADD CONSTRAINT short_links_ad_pages_check CHECK (ad_pages BETWEEN 1 AND 3);
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS short_links_user_idx ON public.short_links (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS link_clicks_link_idx ON public.link_clicks (short_link_id);
 
@@ -50,7 +58,7 @@ CREATE POLICY "Users read own click events" ON public.link_clicks
 REVOKE ALL ON public.short_links FROM anon, authenticated;
 REVOKE ALL ON public.link_clicks FROM anon, authenticated;
 GRANT SELECT, DELETE ON public.short_links TO authenticated;
-GRANT INSERT (user_id, original_url, short_code) ON public.short_links TO authenticated;
+GRANT INSERT (user_id, original_url, short_code, ad_pages) ON public.short_links TO authenticated;
 GRANT UPDATE (is_active) ON public.short_links TO authenticated;
 GRANT SELECT ON public.link_clicks TO authenticated;
 GRANT ALL ON public.short_links, public.link_clicks TO service_role;
