@@ -251,6 +251,7 @@ async function loadAdmin() {
     stat("⏳", "Pending payouts", money(s.pending_amount), `${s.pending_count} request(s)`, "g5"));
   chart($("chart14"), s.days || []);
   $("s1").value = st.rate_p1; $("s2").value = st.rate_p2; $("s3").value = st.rate_p3; $("sMin").value = st.min_withdraw; $("sCur").value = st.currency;
+  $("adWait").value = st.wait_seconds || 8; $("adTop").value = st.ad_top || ""; $("adMid").value = st.ad_middle || ""; $("adBot").value = st.ad_bottom || "";
 
   const wbox = $("adWd"); wbox.replaceChildren();
   if (!wds.length) wbox.append(empty("No requests."));
@@ -292,6 +293,12 @@ $("saveSettings").addEventListener("click", safe(async () => {
   await send("PUT", "/api/admin/settings", {
     rate_p1: $("s1").value, rate_p2: $("s2").value, rate_p3: $("s3").value, min_withdraw: $("sMin").value, currency: $("sCur").value });
   await loadMe(); toast("Settings saved ✓");
+}));
+
+$("saveAds").addEventListener("click", safe(async () => {
+  await send("PUT", "/api/admin/ads", {
+    wait_seconds: $("adWait").value, ad_top: $("adTop").value, ad_middle: $("adMid").value, ad_bottom: $("adBot").value });
+  toast("Ads saved ✓");
 }));
 
 /* ---------- start ---------- */
