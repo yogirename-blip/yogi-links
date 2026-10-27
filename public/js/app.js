@@ -36,24 +36,24 @@ async function api(path, options = {}) {
 
 async function loadLinks() {
   if (!session) return;
-  $("linksBody").innerHTML = '<tr><td colspan="4" class="muted">Loading…</td></tr>';
+  $("linksBody").innerHTML = '<tr><td colspan="5" class="muted">Loading…</td></tr>';
   try {
     const rows = await api("/api/links");
     $("linkCount").textContent = rows.length;
     $("clickCount").textContent = rows.reduce((n, r) => n + Number(r.total_clicks || 0), 0);
     $("linksBody").innerHTML = "";
-    if (!rows.length) $("linksBody").innerHTML = '<tr><td colspan="4" class="muted">No links yet. Create your first link above.</td></tr>';
+    if (!rows.length) $("linksBody").innerHTML = '<tr><td colspan="5" class="muted">No links yet. Create your first link above.</td></tr>';
     for (const r of rows) {
       const tr = document.createElement("tr");
       const short = document.createElement("a");
       short.href = r.short_url; short.target = "_blank"; short.rel = "noopener noreferrer"; short.textContent = r.short_url;
       const dest = document.createElement("span"); dest.textContent = r.original_url;
-      const cells = [short, dest, document.createTextNode(String(r.total_clicks || 0)), document.createTextNode(new Date(r.created_at).toLocaleDateString())];
+      const cells = [short, dest, document.createTextNode(String(r.ad_pages || 1)), document.createTextNode(String(r.total_clicks || 0)), document.createTextNode(new Date(r.created_at).toLocaleDateString())];
       for (const c of cells) { const td = document.createElement("td"); td.append(c); tr.append(td); }
       $("linksBody").append(tr);
     }
   } catch (e) {
-    $("linksBody").innerHTML = '<tr><td colspan="4" class="muted">Could not load links.</td></tr>';
+    $("linksBody").innerHTML = '<tr><td colspan="5" class="muted">Could not load links.</td></tr>';
     showMessage("linkMessage", e.message, true);
   }
 }
@@ -81,7 +81,7 @@ $("authForm").addEventListener("submit", async e => {
 $("linkForm").addEventListener("submit", async e => {
   e.preventDefault(); hideMessage("linkMessage");
   try {
-    const result = await api("/api/links", { method: "POST", body: JSON.stringify({ url: $("url").value.trim() }) });
+    const result = await api("/api/links", { method: "POST", body: JSON.stringify({ url: $("url").value.trim(), ad_pages: Number($("adPages").value) }) });
     showMessage("linkMessage", "Short link created: " + result.short_url);
     $("url").value = ""; await loadLinks();
   } catch (e) { showMessage("linkMessage", e.message, true); }
