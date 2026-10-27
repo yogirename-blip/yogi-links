@@ -1,14 +1,35 @@
-# yogi-links
-Earning Link Shortener Website
-YoGi Links starter
-Mobile-friendly link shortener starter with Supabase email authentication, user dashboard, link creation, and redirect counts.
-Supabase
-Run supabase_schema.sql in SQL Editor once.
-In public/index.html, replace PASTE_SUPABASE_PROJECT_URL_HERE and PASTE_SUPABASE_ANON_KEY_HERE with your Supabase Project URL and anon/publishable key.
-In Authentication → URL Configuration, set Site URL and Redirect URLs to your deployed website URL.
-Render Web Service
-Build command: npm install
-Start command: npm start
-Environment variables: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, PUBLIC_BASE_URL
-SUPABASE_SERVICE_ROLE_KEY is secret: put it only in Render Environment Variables, never in GitHub or browser code.
-This starter does not implement verified ad earnings, referrals, withdrawals, or a production admin panel. Do not display or pay real earnings until an approved ad network, anti-fraud checks, and secure accounting are implemented.
+# YoGi Links
+
+Link shortener with ad pages (1-3), wallet + withdrawals, API key, and an admin panel.
+
+## Folder structure
+```
+yogi-links/
+├─ server.js
+├─ package.json / render.yaml / .env.example / .gitignore
+├─ src/
+│  ├─ ads.js                # PASTE YOUR AD CODE + wait seconds here
+│  ├─ token.js              # signed step tokens
+│  ├─ supabase.js, utils.js
+│  ├─ middleware/           # auth.js (user + admin), rateLimit.js
+│  ├─ services/             # settings.js, links.js
+│  ├─ views/interstitial.js # the ad page design
+│  └─ routes/               # links, me (wallet/stats), admin, v1 (public API), redirect
+├─ public/                  # index.html, css/style.css, js/app.js
+└─ supabase/schema.sql      # run in Supabase SQL Editor (safe to re-run)
+```
+
+## Setup
+1. Supabase -> SQL Editor -> paste ALL of `supabase/schema.sql` -> Run (every time you update the project).
+2. Supabase -> Authentication -> URL Configuration: Site URL = your Render URL; Redirect URLs add `https://YOUR-APP.onrender.com/**`.
+3. Render -> Environment: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, PUBLIC_BASE_URL, ADMIN_EMAILS, AD_SECRET.
+4. Sign up with the email you put in ADMIN_EMAILS -> an Admin tab appears.
+
+## Money rules
+- Rates (per 1000 finished, unique views) are set by the admin per ad-page count.
+- A view pays only if: it finished all ad pages, not a bot, and the same visitor (IP) was not paid for that link in 24h.
+- Withdrawals are requested by users and paid MANUALLY by the admin, then marked Paid (or Rejected = refund).
+- Keep rates below what your ad network pays you.
+
+## Public API
+`GET /api/v1/shorten?api=KEY&url=https://example.com&pages=2&format=json|text`
