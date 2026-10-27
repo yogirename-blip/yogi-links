@@ -50,8 +50,11 @@ router.get("/users", async (_req, res) => {
 });
 
 router.patch("/users/:id", async (req, res) => {
-  if (typeof req.body?.is_banned !== "boolean") return fail(res);
-  const { error } = await admin.from("profiles").update({ is_banned: req.body.is_banned }).eq("id", req.params.id);
+  const b = req.body || {}, upd = {};
+  if (typeof b.is_banned === "boolean") upd.is_banned = b.is_banned;
+  if (typeof b.is_approved === "boolean") upd.is_approved = b.is_approved;
+  if (!Object.keys(upd).length) return fail(res);
+  const { error } = await admin.from("profiles").update(upd).eq("id", req.params.id);
   if (error) return fail(res);
   res.json({ ok: true });
 });
