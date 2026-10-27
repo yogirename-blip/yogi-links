@@ -8,12 +8,14 @@ const router = express.Router();
 const METHODS = ["UPI", "PayPal", "Paytm", "Bank transfer", "Other"];
 
 // GET /api/me  -> profile, wallet, rates
-router.get("/me", requireUser, async (req, res) => {
+router.get("/me", requireUser.allowPending, async (req, res) => {
+  if (!req.isApproved) return res.json({ email: req.user.email, is_admin: false, is_approved: false });
   const s = await getSettings();
   const p = req.profile || {};
   res.json({
     email: req.user.email,
     is_admin: req.isAdmin,
+    is_approved: true,
     api_key: p.api_key || null,
     balance: Number(p.balance || 0),
     total_earned: Number(p.total_earned || 0),
