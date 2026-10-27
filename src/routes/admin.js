@@ -31,6 +31,18 @@ router.put("/settings", async (req, res) => {
   res.json({ settings: await getSettings() });
 });
 
+router.put("/ads", async (req, res) => {
+  const b = req.body || {};
+  const wait = Math.round(Number(b.wait_seconds));
+  if (!Number.isFinite(wait) || wait < 3 || wait > 60) return fail(res, "Wait time must be 3 to 60 seconds.");
+  const rows = [{ key: "wait_seconds", value: String(wait) }];
+  for (const k of ["ad_top", "ad_middle", "ad_bottom"]) rows.push({ key: k, value: String(b[k] ?? "").slice(0, 20000) });
+  const { error } = await admin.from("app_settings").upsert(rows, { onConflict: "key" });
+  if (error) return fail(res, "Could not save ads.");
+  clearSettingsCache();
+  res.json({ settings: await getSettings() });
+});
+
 router.get("/users", async (_req, res) => {
   const { data, error } = await admin.rpc("admin_users");
   if (error) return fail(res);
