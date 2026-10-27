@@ -14,8 +14,9 @@ h1{margin:0;font-size:34px;letter-spacing:-.5px}h2{margin:0 0 6px;font-size:24px
 .muted{color:var(--muted)}.tiny{font-size:12.5px;margin:4px 0}.hidden{display:none!important}
 .between{display:flex;justify-content:space-between;align-items:center;gap:10px}.between h3{margin:0}
 label{display:block;margin:12px 0 6px;font-size:13.5px;color:var(--muted)}
-input,select{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:#0a1324;color:var(--text);font-size:15px;outline:none}
-input:focus,select:focus{border-color:var(--accent)}
+input,select,textarea{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:#0a1324;color:var(--text);font-size:15px;outline:none}
+textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 .btn{display:inline-block;padding:13px 18px;border-radius:12px;border:0;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#04211d;font-weight:700;font-size:15px;cursor:pointer;margin-top:14px}
 .btn:active{transform:scale(.98)}.btn.block{display:block;width:100%}
 .btn.sm{padding:8px 13px;font-size:13px;margin:0;white-space:nowrap}
