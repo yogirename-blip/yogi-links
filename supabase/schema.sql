@@ -67,6 +67,16 @@ CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 INSERT INTO public.profiles (id) SELECT id FROM auth.users ON CONFLICT DO NOTHING;
 
+-- ---------- admin approval for new users (existing users are approved ONCE, when the column is first added) ----------
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'is_approved') THEN
+    ALTER TABLE public.profiles ADD COLUMN is_approved BOOLEAN NOT NULL DEFAULT FALSE;
+    UPDATE public.profiles SET is_approved = TRUE;
+  END IF;
+END $$;
+
 -- ---------- withdrawals ----------
 CREATE TABLE IF NOT EXISTS public.withdrawals (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -237,7 +247,8 @@ CREATE OR REPLACE FUNCTION public.admin_users() RETURNS JSONB
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
 SELECT COALESCE(jsonb_agg(x ORDER BY x.created_at DESC), '[]'::jsonb) FROM (
   SELECT u.id, u.email, u.created_at, COALESCE(p.balance,0) AS balance, COALESCE(p.total_earned,0) AS total_earned,
-         COALESCE(p.is_banned,false) AS is_banned,
+         COALESCE(p.is_banned,false) AS is_banned, COALESCE(p.is_approved,false) AS is_approved,
+         p.payment_method, p.payment_details,
          (SELECT count(*) FROM short_links s WHERE s.user_id = u.id) AS links,
          (SELECT count(*) FROM link_clicks c WHERE c.user_id = u.id) AS views
   FROM auth.users u LEFT JOIN profiles p ON p.id = u.id
