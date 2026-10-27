@@ -38,11 +38,12 @@
     <h2>Create a short link</h2>
     <div id="linkMessage" class="notice hidden"></div>
     <form id="linkForm"><label for="url">Original URL</label><input id="url" type="url" placeholder="https://example.com/page" required>
+    <label for="adPages" style="margin-top:12px;display:block">Ad pages before the link</label><select id="adPages"><option value="1">1 page</option><option value="2">2 pages</option><option value="3">3 pages</option></select>
     <button type="submit" style="margin-top:14px">Create short link</button></form>
   </section>
   <section class="card">
     <div class="row" style="align-items:center"><h2 style="margin:0">Your links</h2><button class="secondary" id="refresh" style="flex:0 0 auto">Refresh</button></div>
-    <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Short link</th><th>Destination</th><th>Clicks</th><th>Created</th></tr></thead><tbody id="linksBody"><tr><td colspan="4" class="muted">Sign in to load links.</td></tr></tbody></table></div>
+    <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Short link</th><th>Destination</th><th>Ads</th><th>Clicks</th><th>Created</th></tr></thead><tbody id="linksBody"><tr><td colspan="5" class="muted">Sign in to load links.</td></tr></tbody></table></div>
   </section>
 </section>
 <footer>Use this service lawfully. Do not shorten malicious, deceptive, or unauthorized links.</footer>
@@ -51,5 +52,4 @@
 <script type="module" src="/js/app.js"></script>
 </body>
 </html>
-
 
